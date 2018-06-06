@@ -12,10 +12,20 @@ class TodoListViewController: UITableViewController {
 
     var itemArray = ["todo1","todo2","todo3"]
     
+    //set up a var to store the database
+    let defaults = UserDefaults.standard
+    
     override func viewDidLoad() {
         super.viewDidLoad()
-        // Do any additional setup after loading the view, typically from a nib.
+        
+        //load the array from the user storage. It's an array of string so cast as such. Use the if/let to only run if it exists
+        if let items = defaults.array(forKey: "TodoListArray") as? [String]{
+            itemArray = items
+        }
+        
+        
     }
+    
 
   //MARK - TableView DataSource Methods
     
@@ -68,6 +78,9 @@ class TodoListViewController: UITableViewController {
             //add the text that the user entered into the item array
             if textField.text != ""{
             self.itemArray.append(textField.text!)
+            
+            //save the item to the local array. put the whole array/dictionary/object into 1 key
+            self.defaults.set(self.itemArray, forKey: "TodoListArray")
                 
             self.tableView.reloadData()
             }
