@@ -12,11 +12,16 @@ class TodoListViewController: UITableViewController {
 
     var itemArray = [Item]()
     
+    //create a constant to the data file path in the document dir in the user's domain path. It's an array so get the first item and add /Items.plist to the path so that we have a direct path to the file we want to store the vals in
+    //you can make as many plists as you like. Use this to help manage things
+    let dataFilePath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first?.appendingPathComponent("Items.plist")
+    
     //set up a var to store the database
     let defaults = UserDefaults.standard
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        
         
         //load the array from the user storage. It's an array of string so cast as such. Use the if/let to only run if it exists
       /*  if let items = defaults.array(forKey: "TodoListArray") as? [String]{
@@ -27,19 +32,9 @@ class TodoListViewController: UITableViewController {
         let newItem = Item()
         newItem.title = "todo1"
         itemArray.append(newItem)
-        
-        let newItem2 = Item()
-        newItem2.title = "todo2"
-        itemArray.append(newItem2)
-        
-        let newItem3 = Item()
-        newItem3.title = "todo3"
-        itemArray.append(newItem3)
  */
         
-        if let items = defaults.array(forKey: "TodoListArray") as? [Item] {
-            itemArray = items
-        }
+       loadItems()
         
     }
     
@@ -82,8 +77,7 @@ class TodoListViewController: UITableViewController {
         //fip the done bool value for the cell on tap
         itemArray[indexPath.row].done = !itemArray[indexPath.row].done
         
-        //refresh the table
-        tableView.reloadData()
+        saveItems()
         
         //change the animation style back to deselected
         tableView.deselectRow(at: indexPath, animated: true)
@@ -103,17 +97,15 @@ class TodoListViewController: UITableViewController {
            
             //print(textField.text!)
             //add the text that the user entered into the item array
-            if textField.text != ""{
             
             let newItem = Item()
             newItem.title = textField.text!
+                
             self.itemArray.append(newItem)
             
-            //save the item to the local array. put the whole array/dictionary/object into 1 key
-            self.defaults.set(self.itemArray, forKey: "TodoListArray")
-                
-            self.tableView.reloadData()
-            }
+            //save the item
+            self.saveItems()
+            
         }
         
         //add a text field to enter the todo item
@@ -130,6 +122,38 @@ class TodoListViewController: UITableViewController {
         present(alert, animated: true, completion: nil)
     }
     
+    //MARK - Model Manupulation Methods
+    //===========SAVE ITEMS AND REFRESH THE DATA===============
+    func saveItems(){
+        //create an encorder object to encode the data into the plist
+        let encoder = PropertyListEncoder()
+        
+        //encode the item array so we can store the values in plist
+        do {
+            let data = try encoder.encode(itemArray)
+            try data.write(to: dataFilePath!)
+        }catch{
+            print(error)
+        }
+        
+        tableView.reloadData()
+    }
+    
+    //============LOAD ITEMS ===================
+    func loadItems(){
+        
+        if let data = try? Data(contentsOf: dataFilePath!){
+            let decoder = PropertyListDecoder()
+            
+            do{
+            itemArray = try decoder.decode([Item].self, from: data)
+            }
+            catch{
+                print(error)
+            }
+        }
+        
+    }
 
 
 }

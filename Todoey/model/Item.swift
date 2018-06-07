@@ -8,7 +8,8 @@
 
 import Foundation
 
-class Item{
+//adding the codable type allows the Method to be saved and loaded locally
+class Item : Codable{
     var title : String = ""
     var done : Bool = false
 }
